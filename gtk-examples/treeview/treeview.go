@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/andre-hub/gotk3/glib"
-	"github.com/andre-hub/gotk3/gtk"
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
 	"log"
 )
 

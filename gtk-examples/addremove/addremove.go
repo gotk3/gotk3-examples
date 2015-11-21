@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/andre-hub/gotk3/gtk"
+	"github.com/gotk3/gotk3/gtk"
 )
 
 var labelList = list.New()
