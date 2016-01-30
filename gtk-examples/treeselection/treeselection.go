@@ -35,7 +35,7 @@ func SelectionChanged(s *gtk.TreeSelection) {
 	items := make([]string, 0, rows.Length())
 
 	for l := rows; l != nil; l = l.Next() {
-		path := l.DataWrapped().(*gtk.TreePath)
+		path := l.Data().(*gtk.TreePath)
 		iter, _ := ListStore.GetIter(path)
 		value, _ := ListStore.GetValue(iter, 0)
 		str, _ := value.GetString()
