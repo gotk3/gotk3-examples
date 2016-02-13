@@ -139,6 +139,22 @@ func setupWindow(title string) (*gtk.Window) {
 	return win
 }
 
+// Handle selection
+func treeSelectionChangedCB(selection *gtk.TreeSelection) {
+	var iter gtk.TreeIter
+	var model gtk.ITreeModel
+	var ok bool
+	model, iter, ok = selection.GetSelected()
+	if ok {
+		tpath, err := model.(*gtk.TreeModel).GetPath(&iter)
+		if err != nil {
+			log.Printf("treeSelectionChangedCB: Could not get path from model: %s\n", err)
+			return
+		}
+		log.Printf("treeSelectionChangedCB: selected path: %s\n", tpath)
+	}
+}
+
 func main() {
 	gtk.Init(nil)
 	initIcons()
@@ -165,6 +181,13 @@ func main() {
 	iter2 = addSubRow(treeStore, iter1, imageFAIL, "test2-3")
 	        addSubRow(treeStore, iter2, imageOK, "test2-3-1")
 	        addSubRow(treeStore, iter2, imageFAIL, "test2-3-2")
+
+	selection, err := treeView.GetSelection()
+	if err != nil {
+		log.Fatal("Could not get tree selection object.")
+	}
+	selection.SetMode(gtk.SELECTION_SINGLE)
+	selection.Connect("changed", treeSelectionChangedCB)
 
 	win.ShowAll()
 	gtk.Main()
