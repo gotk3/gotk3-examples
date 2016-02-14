@@ -141,12 +141,12 @@ func setupWindow(title string) (*gtk.Window) {
 
 // Handle selection
 func treeSelectionChangedCB(selection *gtk.TreeSelection) {
-	var iter gtk.TreeIter
+	var iter *gtk.TreeIter
 	var model gtk.ITreeModel
 	var ok bool
 	model, iter, ok = selection.GetSelected()
 	if ok {
-		tpath, err := model.(*gtk.TreeModel).GetPath(&iter)
+		tpath, err := model.(*gtk.TreeModel).GetPath(iter)
 		if err != nil {
 			log.Printf("treeSelectionChangedCB: Could not get path from model: %s\n", err)
 			return
