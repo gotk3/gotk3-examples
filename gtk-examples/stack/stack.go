@@ -148,7 +148,7 @@ func newStackFull() gtk.IWidget {
 
 	// Fill the stack with 3 pages.
 	boxText1 := newBoxText("Hello there!")
-	boxRadio := newBoxRadio("choice 1", "choice 2", "choice 3", "choice 42")
+	boxRadio := newBoxRadio("choice 1", "choice 2", "choice 3", "choice 4")
 	boxText2 := newBoxText("third page")
 
 	stack.AddTitled(boxText1, "key1", "first page")
