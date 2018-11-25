@@ -87,7 +87,7 @@ func newWindow(application *gtk.Application) *gtk.ApplicationWindow {
 
 	// Create and insert custom action group with prefix "custom"
 	customActionGroup := glib.SimpleActionGroupNew()
-	win.InsertActionGroup("custom", &customActionGroup.ActionGroup)
+	win.InsertActionGroup("custom", customActionGroup)
 
 	// Create an action in the custom action group
 	aPanic := glib.SimpleActionNew("panic", nil)
