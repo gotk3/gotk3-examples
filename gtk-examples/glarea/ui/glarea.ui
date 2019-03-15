@@ -1,0 +1,33 @@
+<!--
+  ui file definition is a modified version of this file
+  https://github.com/ebassi/glarea-example/blob/master/glarea-app-window.ui
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.16 -->
+  <object class="GtkApplicationWindow" id="main_window">
+    <property name="can_focus">False</property>
+    <property name="border_width">6</property>
+    <property name="default_width">1000</property>
+    <property name="default_height">625</property>
+    <child>
+      <object class="GtkBox" id="main_box">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkGLArea" id="gl_drawing_area">
+            <signal name="realize" handler="gl_init" object="main_window" swapped="yes"/>
+            <signal name="unrealize" handler="gl_fini" object="main_window" swapped="yes"/>
+            <signal name="render" handler="gl_draw" object="main_window" swapped="yes"/>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+          </object>S
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
