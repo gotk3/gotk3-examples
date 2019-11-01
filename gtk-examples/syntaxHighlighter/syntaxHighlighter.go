@@ -144,14 +144,15 @@ func loadAndDispSource(filename string) {
 // highlighter: "github.com/alecthomas/chroma"
 // informations above
 func ChromaHighlight(inputString string) (out string, err error) {
-	var buff bytes.Buffer
-	writer := bufio.NewWriter(&buff)
+	
+	buff := new(bytes.Buffer)
+	writer := bufio.NewWriter(buff)
 
 	// Registrering pango formatter
 	formatters.Register("pango", chroma.FormatterFunc(pangoFormatter))
 
-	// Doing the job
-	if err = quick.Highlight(writer, pangoPrepare(inputString), "", "pango", "github"); err != nil {
+	// Doing the job (io.Writer, SourceText, language(go), Lexer(pango), style(pygments))
+	if err = quick.Highlight(writer, inputString, "go", "pango", "pygments"); err != nil {
 		return
 	}
 	writer.Flush()
@@ -200,7 +201,7 @@ func pangoFormatter(w io.Writer, style *chroma.Style, it chroma.Iterator) error 
 			}
 			fmt.Fprint(w, out)
 		}
-		fmt.Fprint(w, token.Value)
+		fmt.Fprint(w, pangoPrepare(token.Value))
 		if !entry.IsZero() {
 			fmt.Fprint(w, closer)
 		}
@@ -212,12 +213,12 @@ var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&",
 
 // prepare: sanitize input string to safely use with pango
 func pangoPrepare(inString string) string {
-	inString = strings.Replace(inString, pangoEscapeChar[1][0], pangoEscapeChar[1][2], -1)
-	return strings.Replace(inString, pangoEscapeChar[0][0], pangoEscapeChar[0][2], -1)
+	inString = strings.ReplaceAll(inString, pangoEscapeChar[1][0], pangoEscapeChar[1][2])
+	return strings.ReplaceAll(inString, pangoEscapeChar[0][0], pangoEscapeChar[0][2])
 }
 
 // finalize: restore originals characters using markup replacement
 func pangoFinalize(inString string) string {
-	inString = strings.Replace(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1], -1)
-	return strings.Replace(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1], -1)
+	inString = strings.ReplaceAll(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1])
+	return strings.ReplaceAll(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1])
 }
