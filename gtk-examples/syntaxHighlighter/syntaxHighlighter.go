@@ -19,10 +19,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"html"
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 
 	"github.com/alecthomas/chroma"
 	"github.com/alecthomas/chroma/formatters"
@@ -64,7 +64,7 @@ func setupWindow(title string) *gtk.Window {
 		gtk.MainQuit()
 	})
 	win.SetPosition(gtk.WIN_POS_CENTER)
-	width, height := 600, 300
+	width, height := 800, 600
 	win.SetDefaultSize(width, height)
 
 	// Box container
@@ -97,6 +97,7 @@ func setupWindow(title string) *gtk.Window {
 	// Configure TextView
 	textView.SetHExpand(true)
 	textView.SetVExpand(true)
+	textView.SetMarginStart(5)
 
 	// Add widgets to window
 	scrolledWindow.Add(textView)
@@ -127,7 +128,7 @@ func loadAndDispSource(filename string) {
 	// fill TextµBuffer with formatted text
 	buff, err := textView.GetBuffer()
 	if err != nil {
-		log.Fatal("Unable to retrieve TextBuffere:", err)
+		log.Fatal("Unable to retrieve TextBuffer:", err)
 	}
 	// Clean text window before fill it
 	buff.Delete(buff.GetStartIter(), buff.GetEndIter())
@@ -144,7 +145,7 @@ func loadAndDispSource(filename string) {
 // highlighter: "github.com/alecthomas/chroma"
 // informations above
 func ChromaHighlight(inputString string) (out string, err error) {
-	
+
 	buff := new(bytes.Buffer)
 	writer := bufio.NewWriter(buff)
 
@@ -156,69 +157,58 @@ func ChromaHighlight(inputString string) (out string, err error) {
 		return
 	}
 	writer.Flush()
-	return pangoFinalize(string(buff.Bytes())), err
+	return string(buff.Bytes()), err
 }
 
-// pangoFormatter: is a part of "ChromaHighlight" function
+// pangoFormatter: is a part of "ChromaHighlight" library
+// This is the Pango version, wich not use tags functionality
+// but only Pango markup style. The complete libray include
+// more functionalities and speed improvement of 80% using
+// Tags and TextBuffer capabilities.
 func pangoFormatter(w io.Writer, style *chroma.Style, it chroma.Iterator) error {
+	var r, g, b uint8
+	var closer, out string
 
-	// Clear the background colour.
-	var clearBackground = func(style *chroma.Style) *chroma.Style {
-		builder := style.Builder()
-		bg := builder.Get(chroma.Background)
-		bg.Background = 0
-		bg.NoInherit = true
-		builder.AddEntry(chroma.Background, bg)
-		style, _ = builder.Build()
-		return style
+	var getColour = func(color chroma.Colour) string {
+		r, g, b = color.Red(), color.Green(), color.Blue()
+		return fmt.Sprintf("#%02X%02X%02X", r, g, b)
 	}
 
-	closer, out := "", ""
-	style = clearBackground(style)
-	for token := it(); token != chroma.EOF; token = it() {
-		entry := style.Get(token.Type)
+	for tkn := it(); tkn != chroma.EOF; tkn = it() {
+
+		entry := style.Get(tkn.Type)
 		if !entry.IsZero() {
-			closer, out = "", ""
 			if entry.Bold == chroma.Yes {
-				out += "<b>"
-				closer = "</b>" + closer
+				out = `<b>`
+				closer = `</b>`
 			}
 			if entry.Underline == chroma.Yes {
-				out += "<u>"
-				closer = "</u>" + closer
+				out += `<u>`
+				closer = `</u>` + closer
 			}
 			if entry.Italic == chroma.Yes {
-				out += "<i>"
-				closer = "</i>" + closer
+				out += `<i>`
+				closer = `</i>` + closer
 			}
 			if entry.Colour.IsSet() {
-				out += fmt.Sprintf("<span foreground=\"#%02X%02X%02X\">", entry.Colour.Red(), entry.Colour.Green(), entry.Colour.Blue())
-				closer = "</span>" + closer
+				out += `<span foreground="` + getColour(entry.Colour) + `">`
+				closer = `</span>` + closer
 			}
 			if entry.Background.IsSet() {
-				out += fmt.Sprintf("<span background=\"#%02X%02X%02X\">", entry.Background.Red(), entry.Background.Green(), entry.Background.Blue())
-				closer = "</span>" + closer
+				out += `<span background="` + getColour(entry.Background) + `">`
+				closer = `</span>` + closer
+			}
+			if entry.Border.IsSet() {
+				out += `<span background="` + getColour(entry.Border) + `">`
+				closer = `</span>` + closer
 			}
 			fmt.Fprint(w, out)
 		}
-		fmt.Fprint(w, pangoPrepare(token.Value))
+		fmt.Fprint(w, html.EscapeString(tkn.Value))
 		if !entry.IsZero() {
 			fmt.Fprint(w, closer)
 		}
+		closer, out = "", ""
 	}
 	return nil
-}
-
-var pangoEscapeChar = [][]string{{"<", "&lt;", "lOwErThAnTmPrEpLaCeMeNt"}, {"&", "&amp;", "aMpErSaNdTmPrEpLaCeMeNt"}}
-
-// prepare: sanitize input string to safely use with pango
-func pangoPrepare(inString string) string {
-	inString = strings.ReplaceAll(inString, pangoEscapeChar[1][0], pangoEscapeChar[1][2])
-	return strings.ReplaceAll(inString, pangoEscapeChar[0][0], pangoEscapeChar[0][2])
-}
-
-// finalize: restore originals characters using markup replacement
-func pangoFinalize(inString string) string {
-	inString = strings.ReplaceAll(inString, pangoEscapeChar[1][2], pangoEscapeChar[1][1])
-	return strings.ReplaceAll(inString, pangoEscapeChar[0][2], pangoEscapeChar[0][1])
 }
