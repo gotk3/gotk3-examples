@@ -173,7 +173,7 @@ func initShaders() (err error) {
 	return
 }
 
-func update(widget *gtk.Widget, frameClock *gdk.FrameClock, userData uintptr) bool {
+func update(widget *gtk.Widget, frameClock *gdk.FrameClock, userData ...interface{}) bool {
 	// Calculate the delta time.
 	delta := float32(frameClock.GetFrameTime() - epoch)
 
